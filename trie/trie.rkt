@@ -44,14 +44,11 @@
             (set-trie-node-is-terminal! node #t)
             (newline)
         )
-        (begin
-            (let ([char (string-ref string index)])
-                (display char)
-                (cond ; Insert node if it does not exist
-                    [(not (node-exists-for-char? char node))
-                        (insert-node-for-char char node)])
-                (insert-string-i string (get-node-from-char char node) (+ index 1)) ; Recurse
-            )
+        (let ([char (string-ref string index)])
+            (display char)
+            (cond [(not (node-exists-for-char? char node)) ; Insert node if it does not exist
+                    (insert-node-for-char char node)])
+            (insert-string-i string (get-node-from-char char node) (+ index 1)) ; Recurse
         )
     )
 )
@@ -62,19 +59,18 @@
 
 ; Internal function
 (define (get-all-strings-i string node)
-    (if (trie-node-is-terminal node)
-        (list string) ; node is terminal, return list of string
-        (flatten
-            (filter (lambda (item) (not (void? item)))
+    (filter (lambda (item) (not (void? item))) ; Remove void
+        (flatten ; extract nested lists
+            (list
+                (cond [(trie-node-is-terminal node) string]); node is terminal, include this string in list
                 (map ; for all child nodes
                     (lambda (index)
                         (let ([char (unhash index)])
-                            (cond 
-                                [(node-exists-for-char? char node) 
+                            (cond [(node-exists-for-char? char node) 
                                 (get-all-strings-i 
                                     (string-append string (make-string 1 char)) ; string + char
-                                    (get-node-from-char char node))]) ; child node
-                        )
+                                    (get-node-from-char char node)) ; child node
+                        ]))
                     )
                     (range 0 25)
                 )
@@ -90,15 +86,11 @@
 ; Internal function
 (define (get-matches-i string node index)
     (if (= index (string-length string))
-        (begin ; string is empty
-            (get-all-strings-i string node)
-        )
-        (begin
-            (let ([char (string-ref string index)])
-                (cond ; If no node exists, return empty
-                    [(not (node-exists-for-char? char node)) '()])
-                (get-matches-i string (get-node-from-char char node) (+ index 1))
-            )
+        (get-all-strings-i string node) ; string is empty
+        (let ([char (string-ref string index)])
+            (cond ; If no node exists, return empty
+                [(not (node-exists-for-char? char node)) '()])
+            (get-matches-i string (get-node-from-char char node) (+ index 1))
         )
     )
 )

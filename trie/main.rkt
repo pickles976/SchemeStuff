@@ -10,6 +10,8 @@
 (insert-string "POTS" my-trie)
 (insert-string "PLANT" my-trie)
 (insert-string "PLANET" my-trie)
+(insert-string "PLANETS" my-trie)
+(insert-string "PLANETARY" my-trie)
 (get-all-strings my-trie)
-(get-matches "HAT" my-trie)
-(get-matches "PLA" my-trie)
+(get-matches "HAT" my-trie) ; HATCH, HATS
+(get-matches "PLA" my-trie) ; PLANET, PLANETS, PLANT, "PLANETARY"
