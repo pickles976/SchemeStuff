@@ -9,7 +9,7 @@
     dream-expr-eval
 )
 
-(define no-val '*no-value)
+(define no-val '*no-value*)
 
 ; Check if argument is a constant
 (define (expr-constant? expr) 
@@ -21,6 +21,7 @@
 ; An expression is just a list of the form (operator arg1 arg2 ...)
 ; This gets the operator
 (define (expr-op expr) (car expr))
+
 ; This gets the operands
 (define (expr-args expr) (cdr expr))
 
@@ -33,14 +34,12 @@
             else  
             (cond 
                 [(expr-variable? expr)
-                (variable-value expr)] ; is undefined variable
+                (variable-value expr)] ; return variable value
                 [else
                 (let ([op (operator-procedure (expr-op expr))] ; Get operator
                     [operands (map dream-expr-eval (expr-args expr))]) ; map-recurse to get all args
                 (op operands))]) ; apply operator to operands
         ]))
-
-(define (variable-value name) no-val)
 
 (define operator-name-list
     (list
@@ -98,7 +97,7 @@
                 "Variable ~a already declared" name)
             (set! *variables* ; append a box with [name `*no value* to the list of variables]
                 (cons 
-                    (cons name no-val)
+                    (mcons name no-val)
                     *variables*)))))
 
 ; Sets the binding value equal to "value" in the global variable space
@@ -106,7 +105,7 @@
     (let ([x (assv name *variables*)])
         (if (not x)
             (error 'variable-assign "Variable ~a not declared" name)
-            (set-cdr! x value))))
+            (set-mcdr! x value))))
 
 ; Read value stored at binding
 (define (variable-value name)
