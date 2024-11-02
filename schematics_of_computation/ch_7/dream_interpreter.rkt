@@ -2,6 +2,7 @@
 #lang racket
 
 (require pretty-format)
+(require compatibility/mlist)
 
 (provide 
     expr-constant?
@@ -12,7 +13,7 @@
     dream-eval
 )
 
-(define no-val '*no-value*)
+(define nil '*nil*)
 
 ; Check if argument is a constant
 (define (expr-constant? expr) 
@@ -94,28 +95,28 @@
 
 ; This puts a binding name in the global variable space
 (define (variable-declare name)
-    (let ([x (assv name *variables*)]) ; find the first item in *variables* with name "name"
+    (let ([x (massv name *variables*)]) ; find the first item in *variables* with name "name"
         (if x ; if variable found
             (error 'variable-declare
                 "Variable ~a already declared" name)
             (set! *variables* ; append a box with [name `*no value* to the list of variables]
-                (cons 
-                    (cons name (mcons no-val no-val)) ; mcons is not a list, so we have to do this weird indirection
+                (mcons
+                    (mcons name nil) ; mcons is not a list, so we have to do this weird indirection
                     *variables*)))))
 
 ; Sets the binding value equal to "value" in the global variable space
 (define (variable-assign name value)
-    (let ([x (assv name *variables*)])
+    (let ([x (massv name *variables*)])
         (if (not x)
             (error 'variable-assign "Variable ~a not declared" name)
-            (set-mcar! (cdr x) value)))) ; set value in: (var-name (mcons value no-val))
+            (set-mcdr! x value)))) ; set value in: (var-name value)
 
 ; Read value stored at binding
 (define (variable-value name)
-    (let ([x (assv name *variables*)])
+    (let ([x (massv name *variables*)])
         (if (not x)
-            no-val
-            (mcar (cdr x))))) ; read value from (var-name (mcons value no-val))
+            nil
+            (mcdr x)))) ; read value from (var-name (mcons value nil))
 
 (define (dream-eval prog)
     (begin
