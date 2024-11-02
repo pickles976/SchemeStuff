@@ -1,12 +1,15 @@
 #!/usr/bin/racket
 #lang racket
 
+(require pretty-format)
+
 (provide 
     expr-constant?
     expr-variable?
     expr-op
     expr-args
     dream-expr-eval
+    dream-eval
 )
 
 (define no-val '*no-value*)
@@ -97,7 +100,7 @@
                 "Variable ~a already declared" name)
             (set! *variables* ; append a box with [name `*no value* to the list of variables]
                 (cons 
-                    (mcons name no-val)
+                    (cons name (mcons no-val no-val)) ; mcons is not a list, so we have to do this weird indirection
                     *variables*)))))
 
 ; Sets the binding value equal to "value" in the global variable space
@@ -105,12 +108,39 @@
     (let ([x (assv name *variables*)])
         (if (not x)
             (error 'variable-assign "Variable ~a not declared" name)
-            (set-mcdr! x value))))
+            (set-mcar! (cdr x) value)))) ; set value in: (var-name (mcons value no-val))
 
 ; Read value stored at binding
 (define (variable-value name)
     (let ([x (assv name *variables*)])
         (if (not x)
             no-val
-            (cdr x))))
+            (mcar (cdr x))))) ; read value from (var-name (mcons value no-val))
 
+(define (dream-eval prog)
+    (begin
+        (variable-clear)
+        (dream-command-sequence (cdr prog)))) ; program always begins with "program", so we cdr the rest of the list
+
+(define (dream-command-sequence command-list) 
+    (for-each dream-eval-command command-list)) ; eval each command in the list of commands
+
+(define (dream-eval-command command) 
+    (case (car command)
+        [(variable)
+            (for-each variable-declare (cdr command))]
+        [(assign)
+            (variable-assign
+                (list-ref command 1)
+                (dream-expr-eval (list-ref command 2)))]
+        [(test)
+            (dream-eval-command
+                (list-ref
+                    command
+                    (if (dream-expr-eval (list-ref command 1)) 2 3)))]
+        [(in-sequence)
+            (dream-command-sequence (cdr command))]
+        [(print)
+            (pretty-printf "~a~%" (dream-expr-eval (list-ref command 1)))]
+        [else
+            #f]))

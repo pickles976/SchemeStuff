@@ -9,5 +9,13 @@
 (check-expect (expr-constant? #f) #t)
 (check-expect (expr-constant? 'symbol) #f)
 
-(dream-expr-eval '(times 2 (times 3 5)))
-; (dream-eval '(program (print (plus 2 2))))
+(dream-expr-eval '(times 2 (times 3 5))) ; 30
+(dream-eval '(program (print (plus 2 2)))) ; 4
+(dream-eval 
+    '(program 
+        (variable foo bar)
+        (assign foo 3)
+        (assign bar (times foo foo foo))
+        (print bar) ; 27
+    )
+) ; 27
