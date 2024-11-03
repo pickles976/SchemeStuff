@@ -3,10 +3,15 @@
 
 (require compatibility/mlist)
 
-; pg 382
+; pg 387
 
 (provide 
-    extend-environment)
+    extend-environment
+    find-binding
+    get-binding
+    set-binding
+    def-binding
+)
 
 ; Extend the environment by creating a new frame, with names bound to values, whose parent is env.
 (define (extend-environment names values env)
