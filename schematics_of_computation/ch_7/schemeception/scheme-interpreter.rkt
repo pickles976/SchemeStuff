@@ -23,3 +23,6 @@
                     (cdr b) self-application) ; if b is a special form, apply procedure
                 exp env)] ; perform application
         [else (evaluator-error "Incorrect expression" exp)]))
+
+(define (self-application exp env)
+    (let*))
