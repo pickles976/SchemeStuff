@@ -9,6 +9,7 @@
 (require "self-eval-procedure.rkt")
 (require "self-eval-frames.rkt")
 (require "self-eval-primitives.rkt")
+(require "eval-error.rkt")
 
 (define (self-eval exp env)
     (simple-form exp env))
@@ -54,3 +55,58 @@
                 val
                 (seq (self-eval (car exp) env) (cdr exp) env)))])
         (seq unbound exp env)))
+
+(define special-forms '())
+
+(define (define-special symb proc)
+    (let ([x (assv symb special-forms)])
+        (if x
+            (set-cdr! x proc)
+            (set! special-forms
+                (cons (cons symb proc) special-forms)))))
+
+(define (define-special-forms)
+    (lambda ()
+        (define-special 'quote
+            (lambda (exp env) (get-arg exp 1)))
+        (define-special 'lambda
+            (lambda (exp env)
+                (make-procedure
+                    (get-arg exp 1) (get-rest exp 2) env)))
+        (define-special 'set!
+            (lambda (exp env)
+                (set-binding (get-arg exp 1)
+                    (self-eval (get-arg exp 2) env) env)))
+        (define-special 'if
+            (lambda (exp env)
+                (if (self-eval (get-arg exp 1) env)
+                    (self-eval (get-arg exp 2) env)
+                    (self-eval (get-arg exp 3) env))))
+        (define-special 'begin
+            (lambda (exp env)
+                (self-sequence (get-rest exp 1) env)))
+        (define-special 'define
+            (lambda (exp env)
+                (def-binding (get-arg exp 1)
+                    (self-eval (get-arg exp 2) env) env))
+                (void))
+        (define-special 'define-macro
+            (lambda (exp env)
+                (def-macro (get-arg exp 1)
+                    (self-eval (get-arg exp 2) env) env))
+                (void))
+    )
+)
+
+(define (def-macro mac-name expander)
+    (define-special mac-name    
+        (lambda (exp env)
+            (self-eval 
+                (self-sequence  
+                    (procedure-body expander)
+                    (extend-environment (procedure-params expander)
+                        (list exp) (procedure-env expander)))
+                    env))))
+
+
+(self-eval (+ 1 2))

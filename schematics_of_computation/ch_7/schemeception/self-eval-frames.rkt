@@ -2,6 +2,7 @@
 #lang racket
 
 (require compatibility/mlist)
+(require "eval-error.rkt")
 
 ; pg 387
 
@@ -63,14 +64,6 @@
         (if (not x)
             (set-mcar! env (mcons (mcons symb val) (mcar env)))
             (set-mcdr! x val))))
-
-
-(define (evaluator-error message items)
-    (print message)
-    (newline)
-    (print items)
-    (newline)
-)
 
 (define root-env (extend-environment (list 'x) (list 1) '())) ; Create a root env with binding x=1
 (print root-env) 

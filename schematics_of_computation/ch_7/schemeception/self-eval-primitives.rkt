@@ -5,6 +5,7 @@
 
 (require "self-eval-procedure.rkt")
 (require "self-eval-frames.rkt")
+(require "eval-error.rkt")
 
 ; pg 390
 
@@ -13,7 +14,7 @@
     primitive-procedure
     make-primitive-environment)
 
-(define is-primitive procedure?)
+(define is-primitive? procedure?)
 
 (define (primitive-procedure) (lambda (x) x))
 

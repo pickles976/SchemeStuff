@@ -2,6 +2,7 @@
 #lang racket
 
 (require compatibility/mlist)
+(require "eval-error.rkt")
 
 ; pg 389
 
@@ -34,15 +35,6 @@
     (if (is-procedure? proc)
         (list-ref proc 3)
         (evaluator-error "Procedure expected" proc)))
-
-
-
-(define (evaluator-error message items)
-    (print message)
-    (newline)
-    (print items)
-    (newline)
-)
 
 (define root-env '())
 (define my-procedure (make-procedure 'x (lambda (x) (print x)) root-env))
