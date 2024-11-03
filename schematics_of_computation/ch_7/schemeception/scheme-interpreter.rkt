@@ -1,6 +1,9 @@
 #!/usr/bin/racket
 #lang racket
 
+; pg 391
+; I don't really fully understand what is happening here
+
 (require compatibility/mlist)
 
 (require "self-eval-procedure.rkt")
@@ -13,6 +16,7 @@
 (define (constant? exp)
     (or (number? exp) (boolean? exp) (string? exp)))
 
+; must be constant, variable, or pair
 (define (simple-form exp env)
     (cond
         [(constant? exp) exp] ; if expr is constant, return that constant
@@ -25,4 +29,28 @@
         [else (evaluator-error "Incorrect expression" exp)]))
 
 (define (self-application exp env)
-    (let*))
+    (let*
+        ([eval-arg (lambda (arg) (self-eval arg env))]
+        [evaluated-args (map eval-arg exp)] ; recursively evaluate all args
+        [operator (car evaluated-args)] ; the the operator from the list
+        [operands (cdr evaluated-args)]) ; get the operants from the list of evaluated args
+        (cond
+            [(is-primitive? operator) ; call the primitive's procedure
+                ((primitive-procedure operator) operands)]
+            [(is-procedure? operator) ; recursively call procedure in exyended environment
+                (self-sequence
+                    (procedure-body operator)
+                    (extend-environment
+                        (procedure-params operator)
+                        operands
+                        (procedure-env operator)))]
+            [else  
+                (evaluator-error "Procedure required" exp)])))
+
+(define (self-sequence exp env)
+    (letrec
+        ([seq (lambda (val exp env)
+            (if (null? exp)
+                val
+                (seq (self-eval (car exp) env) (cdr exp) env)))])
+        (seq unbound exp env)))
