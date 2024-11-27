@@ -1,0 +1,16 @@
+{
+  "name": "propagatorsjs",
+  "version": "1.0.0",
+  "main": "main.js",
+  "dependencies": {
+    "sicp": "^1.1.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module"
+}
